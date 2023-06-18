@@ -1,0 +1,18 @@
+<template>
+    <div class="alerta"> <slot></slot></div>
+</template>
+
+<style>
+
+.alerta{
+    padding: 1rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 1.6rem;
+    text-align: center;
+    background-color: var(--blanco);
+    border-left: .5rem solid #c42323;
+    color: #c42323;
+    margin-bottom: 2rem;
+}
+</style>
