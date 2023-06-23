@@ -28,6 +28,7 @@ const porcentaje = computed(() => {
 <template>
     <div class="dos-columnas">
         <div class="contenedor-grafico">
+            <p class="porcentaje">{{ porcentaje }}%</p>
             <CircleProgress :percent="porcentaje" :size="250" :border-width="30" :border-bg-width="30" fill-color="#3b82f6" empty-color="#e1e1e1"/>
         </div>
         <div class="contenedor-presupuesto">
