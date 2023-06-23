@@ -1,9 +1,10 @@
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, computed } from 'vue'
 import Presupuesto from './components/Presupuesto.vue'
 import ControlPresupuesto from './components/ControlPresupuesto.vue'
 import Gasto from './components/Gasto.vue'
 import Modal from './components/Modal.vue'
+import Filtro from './components/Filtro.vue'
 import { generarId } from './helpers'
 import iconoNuevoGasto from './assets/img/nuevo-gasto.svg'
 
@@ -16,6 +17,7 @@ const presupuesto = ref(0)
 const disponible = ref(0)
 const gastado = ref(0)
 const gastos = ref([])
+const filtro = ref('')
 
 watch(gastos, () => {
   const totalGastado = gastos.value.reduce((total, gasto) => gasto.cantidad + total, 0)
@@ -65,7 +67,7 @@ const guardarGasto = () => {
     // editando
     const { id } = gasto
     const i = gastos.value.findIndex((gasto => gasto.id === id))
-    gastos.value[i] = {...gasto}
+    gastos.value[i] = { ...gasto }
   } else {
     gastos.value.push({
       ...gasto,
@@ -91,6 +93,20 @@ const seleccionarGasto = id => {
   Object.assign(gasto, gastoEditar);
   mostrarModal()
 }
+
+const eliminarGasto = () => {
+  if (confirm('Eliminar?')) {
+    gastos.value = gastos.value.filter(gastoState => gastoState.id !== gasto.id)
+    ocultarModal()
+  }
+}
+
+const gastosFiltrados = computed(() => {
+ if(filtro.value) {
+  return gastos.value.filter( gasto => gasto.categoria === filtro.value)
+ }
+ return gastos.value 
+})
 </script>
 
 <template>
@@ -107,19 +123,21 @@ const seleccionarGasto = id => {
     </header>
 
     <main v-if="presupuesto > 0">
+      
+    <Filtro v-model:filtro="filtro" />
 
       <div class="listado-gastos contenedor">
-        <h2>{{ gastos.length > 0 ? 'Gastos' : 'No hay gastos' }}</h2>
+        <h2>{{ gastosFiltrados.length > 0 ? 'Gastos' : 'No hay gastos' }}</h2>
 
-        <Gasto v-for="gasto in gastos" :key="gasto.id" :gasto="gasto" @seleccionar-gasto="seleccionarGasto" />
+        <Gasto v-for="gasto in gastosFiltrados" :key="gasto.id" :gasto="gasto" @seleccionar-gasto="seleccionarGasto" />
       </div>
       <div class="crear-gasto">
         <img :src="iconoNuevoGasto" alt="icono nuevo gasto" @click="mostrarModal">
       </div>
 
-      <Modal v-if="modal.mostrar" @ocultar-modal="ocultarModal" @guardar-gasto="guardarGasto" :modal="modal"
-        :disponible="disponible" v-model:nombre="gasto.nombre" v-model:cantidad="gasto.cantidad"
-        v-model:categoria="gasto.categoria" />
+      <Modal v-if="modal.mostrar" @ocultar-modal="ocultarModal" @guardar-gasto="guardarGasto"
+        @eliminar-gasto="eliminarGasto" :modal="modal" :disponible="disponible" :id="gasto.id"
+        v-model:nombre="gasto.nombre" v-model:cantidad="gasto.cantidad" v-model:categoria="gasto.categoria" />
     </main>
 
   </div>

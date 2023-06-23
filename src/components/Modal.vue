@@ -5,7 +5,7 @@ import cerrarModal from '../assets/img/cerrar.svg'
 
 const error = ref('')
 
-const emit = defineEmits(['ocultar-modal', 'guardar-gasto', 'update:nombre', 'update:cantidad', 'update:categoria'])
+const emit = defineEmits(['ocultar-modal', 'guardar-gasto', 'update:nombre', 'update:cantidad', 'update:categoria', 'eliminar-gasto'])
 const props = defineProps({
     modal: {
         type: Object,
@@ -26,12 +26,18 @@ const props = defineProps({
     disponible: {
         type: Number,
         required: true
+    },
+    id: {
+        type: [String, null],
+        required: true
     }
 })
 
+const old = props.cantidad
+
 const agregarGasto = () => {
     //Validando campos vacioos
-    const { cantidad, categoria, nombre, disponible } = props
+    const { cantidad, categoria, nombre, disponible, id } = props
     if ([nombre, cantidad, categoria].includes('')) {
         error.value = 'Todos los campos son obligatorios'
         setTimeout(() => {
@@ -49,12 +55,22 @@ const agregarGasto = () => {
     }
 
     //Validar que hay presupuesto
-    if (cantidad > disponible) {
-        error.value = ' Has excedido el presupuesto'
-        setTimeout(() =>{
-            error.value = ''
-        }, 3000)
-        return
+    if (id) {
+        if (cantidad > old + disponible) {
+            error.value = ' Has excedido el presupuesto'
+            setTimeout(() => {
+                error.value = ''
+            }, 3000)
+            return
+        }
+    } else {
+        if (cantidad > disponible) {
+            error.value = ' Has excedido el presupuesto'
+            setTimeout(() => {
+                error.value = ''
+            }, 3000)
+            return
+        }
     }
 
     emit('guardar-gasto')
@@ -68,7 +84,7 @@ const agregarGasto = () => {
         </div>
         <div class="contenedor contenedor-formulario" :class="[modal.animar ? 'animar' : 'cerrar']">
             <form class="nuevo-gasto" @submit.prevent="agregarGasto">
-                <legend>Anadir Gasto</legend>
+                <legend>{{id ? 'Guardar cambios' : 'Anadir Gasto'}}</legend>
                 <Alerta v-if="error"> {{ error }}</Alerta>
                 <div class="campo">
                     <label for="nombre">Nombre gasto:</label>
@@ -94,8 +110,13 @@ const agregarGasto = () => {
                         <option value="subscripciones"> Subscripciones</option>
                     </select>
                 </div>
-                <input type="submit" value="Anadir Gasto">
+                <input type="submit" :value="[id ? 'Guardar Cambios' : 'Anadir gasto']">
             </form>
+
+            <button type="button" class="btn-eliminar" v-if="id" @click="$emit('eliminar-gasto')">
+                Eliminar gasto
+
+            </button>
         </div>
     </div>
 </template>
@@ -186,4 +207,5 @@ const agregarGasto = () => {
     color: var(--blanco);
     margin-top: 10rem;
     cursor: pointer;
-}</style>
+}
+</style>
