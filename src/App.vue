@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, watch, computed } from 'vue'
+import { ref, reactive, watch, computed, onMounted } from 'vue'
 import Presupuesto from './components/Presupuesto.vue'
 import ControlPresupuesto from './components/ControlPresupuesto.vue'
 import Gasto from './components/Gasto.vue'
@@ -23,6 +23,8 @@ watch(gastos, () => {
   const totalGastado = gastos.value.reduce((total, gasto) => gasto.cantidad + total, 0)
   gastado.value = totalGastado
   disponible.value = presupuesto.value - totalGastado
+
+  localStorage.setItem('gastos', JSON.stringify(gastos.value))
 }, {
   deep: true
 })
@@ -33,6 +35,23 @@ watch(modal, () => {
   }
 }, {
   deep: true
+})
+
+watch(presupuesto, () => {
+localStorage.setItem('presupuesto', presupuesto.value)
+})
+
+onMounted(() => {
+  const presupuestoStorage = localStorage.getItem('presupuesto')
+  if(presupuestoStorage) {
+    presupuesto.value = Number(presupuestoStorage)
+    disponible.value = Number(presupuestoStorage)
+  }
+  const gastosStorage = localStorage.getItem('gastos')
+  if(gastosStorage) {
+    gastos.value = JSON.parse(gastosStorage)
+    disponible.value = JSON.parse(gastosStorage)
+  }
 })
 
 const gasto = reactive({
@@ -100,6 +119,12 @@ const eliminarGasto = () => {
     ocultarModal()
   }
 }
+const resetApp = () => {
+  if (confirm('Deseas reiniciar todo?')) {
+    gastos.value = []
+    presupuesto.value = 0
+  }
+}
 
 const gastosFiltrados = computed(() => {
  if(filtro.value) {
@@ -107,6 +132,8 @@ const gastosFiltrados = computed(() => {
  }
  return gastos.value 
 })
+
+
 </script>
 
 <template>
@@ -117,7 +144,7 @@ const gastosFiltrados = computed(() => {
       </h1>
       <div class="contenedor-header contenedor sombra">
         <Presupuesto v-if="presupuesto === 0" @definir-presupuesto="definirPresupuesto" />
-        <ControlPresupuesto v-else :presupuesto="presupuesto" :disponible="disponible" :gastado="gastado" />
+        <ControlPresupuesto v-else :presupuesto="presupuesto" :disponible="disponible" :gastado="gastado" @reset-app="resetApp" />
 
       </div>
     </header>

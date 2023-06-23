@@ -1,7 +1,10 @@
 <script setup>
-import image from '../assets/img/grafico.jpg'
+import { computed } from 'vue'
+import CircleProgress from 'vue3-circle-progress'
+import "vue3-circle-progress/dist/circle-progress.css"
 import { formatearCantidad } from '../helpers'
 
+defineEmits(['reset-app'])
 const props = defineProps({
     presupuesto: {
         type: Number,
@@ -16,15 +19,19 @@ const props = defineProps({
         required: true
     }
 })
+
+const porcentaje = computed(() => {
+    return parseInt(((props.presupuesto - props.disponible ) / props.presupuesto ) * 100)
+})
 </script>
 
 <template>
     <div class="dos-columnas">
         <div class="contenedor-grafico">
-            <img :src="image" alt="">
+            <CircleProgress :percent="porcentaje" :size="250" :border-width="30" :border-bg-width="30" fill-color="#3b82f6" empty-color="#e1e1e1"/>
         </div>
         <div class="contenedor-presupuesto">
-            <button class="reset-app"> Resetear App</button>
+            <button class="reset-app" type="button" @click="$emit('reset-app')"> Resetear App</button>
 
             <p> <span>Presupuesto:</span>
                 {{ formatearCantidad(presupuesto) }}
